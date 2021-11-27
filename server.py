@@ -1,9 +1,9 @@
 from typing import Optional
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-from utils import User, get_user_by_username, hash_sha256
+from utils import User, get_user, hash_sha256, insert_user
 
 with open("db_access_string.txt", "r") as f:
     db_info = f.read()
@@ -14,7 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = get_user_by_username(form_data.username, db_info)
+    user = get_user("username", form_data.username, db_info)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
@@ -24,7 +24,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
     return {"access_token": user.id, "token_type": "bearer"}
 
-
 @app.get("/users/me")
 async def read_users_me(user_id: str = Depends(oauth2_scheme)):
     return user_id
+
+@app.post("/register", status_code=200)
+async def login(username: str = Form(...), email:str = Form(...), password: str = Form(...)):
+    success = insert_user(username, email, password, db_info)
+    if not success:
+        raise HTTPException(status_code=400, detail="Username or email already exists.")
