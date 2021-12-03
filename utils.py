@@ -2,6 +2,8 @@ import psycopg2 as ps2
 from pydantic import BaseModel
 from typing import Optional
 import hashlib
+from PIL import Image
+import qrcode
 
 class User(BaseModel):
     id: int
@@ -42,3 +44,17 @@ def insert_user(username:str, email:str, password:str, db_info:str) -> bool:
             except ps2.errors.UniqueViolation:
                 return False
     return True
+
+def generate_qr(text:str, size:int) -> Image:
+    """
+    Returns a square PIL Image as the size given. Uses QR Version 5 to encode 64 chars at most.
+    """
+    assert len(text)<=64 # 64 is the most alphanumeric chars allowed in Version 5
+    box_size = size // (37+4) # 37 is Version 5 size. 4 is the border size. Change these to change the version.
+    qr = qrcode.QRCode(version=5, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=box_size, border=2)
+    qr.add_data(text)
+    img = Image.new('RGB', (size,size), (255,255,255))
+    offset = (img.size[0] - (box_size*41))//2 # calculate where to paste into middle
+    img.paste(qr.make_image(), (offset, offset))
+    return img
+    
