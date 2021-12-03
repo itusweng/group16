@@ -108,4 +108,5 @@ async def delete_qr(qr_index:int, user_id: str = Depends(oauth2_scheme)):
             cur.execute(f"DELETE FROM qr_codes WHERE id={requested_qr[0]};")
             if cur.rowcount==0:
                 raise HTTPException(status_code=400, detail="Invalid QR index.")
+            cur.execute(f"UPDATE users SET qr_count = qr_count - 1 WHERE id={user_id};")
 
