@@ -1,15 +1,13 @@
 from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-import psycopg2 as ps2
+from fastapi.responses import FileResponse, JSONResponse
 import os
 
-from utils import User, get_user, hash_sha256, insert_user, generate_qr
+from logic_layer import login_user, register_user, decode_token, insert_new_qr, get_user_qr, \
+    generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code
 
-with open("db_access_string.txt", "r") as f:
-    db_info = f.read()
+
 SERVER_HOST = "http://127.0.0.1:8000"
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -17,96 +15,68 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 # LOGIN / REGISTER ###############################################################
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = get_user("username", form_data.username, db_info)
-    if not user:
+    user, success = login_user(form_data.username, form_data.password)
+    if not success:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    
-    hashed_password = hash_sha256(form_data.password)
-    if not hashed_password == user.hashed_password:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-
+    print(dict(user))
     return {"access_token": user.id, "token_type": "bearer"}
-
-@app.get("/users/me")
-async def read_users_me(user_id: str = Depends(oauth2_scheme)):
-    return user_id
 
 @app.post("/register", status_code=200)
 async def login(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
-    success = insert_user(username, email, password, db_info)
+    success = register_user(username, email, password)
     if not success:
         raise HTTPException(status_code=400, detail="Username or email already exists.")
 
 # QR CODE ###############################################################
 @app.post("/create_qr")
-async def create_qr(link: str = Form(...), user_id: str = Depends(oauth2_scheme)):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM users WHERE id={user_id} AND (is_premium IS TRUE OR qr_count<3);")
-            cur_return = cur.fetchone()
-            if not cur_return:
-                raise HTTPException(status_code=400, detail="Free users can generate up to 3 QR codes. Upgrade to premium or delete a QR code to generate a new one.")
-            cur.execute(f"INSERT INTO qr_codes (user_id, outgoing_link) VALUES ({user_id}, '{link}');")
-            cur.execute(f"UPDATE users SET qr_count = qr_count + 1 WHERE id={user_id};")
+async def create_qr(link: str = Form(...), token: str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    status = insert_new_qr(link, user)
+    if status==1:
+        raise HTTPException(status_code=400, detail="Free users can generate up to 3 QR codes. Upgrade to premium or delete a QR code to generate a new one.")
+    if status==2:
+        raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
 
 @app.get("/my_qr_codes")
-async def get_all_qr(user_id: str = Depends(oauth2_scheme)):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM qr_codes WHERE user_id={user_id} ORDER BY id ASC;")
-            cur_return = cur.fetchall()
-            return [{'i':i, 'link':qr[2]} for i, qr in enumerate(cur_return)]
+async def my_qr_codes(token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    return get_user_qr(user)
 
 @app.post("/get_qr_img")
-async def get_qr_img(qr_index:int, bg_task:BackgroundTasks, user_id: str = Depends(oauth2_scheme)):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM qr_codes WHERE user_id={user_id} ORDER BY id ASC;")
-            try:
-                requested_qr = cur.fetchall()[qr_index]
-            except IndexError:
-                raise HTTPException(status_code=400, detail="Invalid QR index.")
-    fname = f"{requested_qr[0]}.png"
-    generate_qr(SERVER_HOST + f"/qr/{requested_qr[0]}", 1024).save(fname)
+async def get_qr_img(qr_index:str, bg_task:BackgroundTasks, token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    requested_qr = generate_qr_for_user(qr_index, user, SERVER_HOST)
+    if requested_qr is None:
+        raise HTTPException(status_code=400, detail="Only the owners can see their QR codes.")
+    fname = f"{qr_index}.png"
+    requested_qr.save(fname)
     bg_task.add_task(os.remove, fname)
     return FileResponse(fname, background=bg_task)
 
-@app.get("/qr/{qr_id}") # Get redirect link from qr
+@app.get("/qr/{qr_id}", status_code=200)# Get redirect link from qr
 async def redirect_from_qr(qr_id:str):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT outgoing_link FROM qr_codes WHERE id={qr_id};")
-            cur_return = cur.fetchone()
-            if not cur_return:
-                raise HTTPException(status_code=400, detail="Invalid QR code.")
-            return {"redirect_link":cur_return[0]}
+    redirect_link = get_qr_redirect_link(qr_id)
+    if redirect_link is None:
+        raise HTTPException(status_code=400, detail="Invalid QR code.")
+    
+    return {"redirect_to":redirect_link[0]}
+    #return JSONResponse(status_code=302, headers={"Location":redirect_link}) TODO
 
 @app.post("/update_qr")
-async def update_qr(qr_index:int, new_link:str, user_id: str = Depends(oauth2_scheme)):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM qr_codes WHERE user_id={user_id} ORDER BY id ASC;")
-            try:
-                requested_qr = cur.fetchall()[qr_index]
-            except IndexError:
-                raise HTTPException(status_code=400, detail="Invalid QR index.")
-            
-            cur.execute(f"UPDATE qr_codes SET outgoing_link='{new_link}' WHERE id={requested_qr[0]};")
-            if cur.rowcount==0:
-                raise HTTPException(status_code=400, detail="Invalid QR index.")
+async def update_qr(qr_index:int, new_link:str, token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    status = change_qr_link(qr_index, new_link, user)
+    if status==1:
+        raise HTTPException(status_code=400, detail="Only the owners can edit their QR codes.")
+    if status==2:
+        raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
 
 @app.post("/delete_qr")
-async def delete_qr(qr_index:int, user_id: str = Depends(oauth2_scheme)):
-    with ps2.connect(db_info) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM qr_codes WHERE user_id={user_id} ORDER BY id ASC;")
-            try:
-                requested_qr = cur.fetchall()[qr_index]
-            except IndexError:
-                raise HTTPException(status_code=400, detail="Invalid QR index.")
-            
-            cur.execute(f"DELETE FROM qr_codes WHERE id={requested_qr[0]};")
-            if cur.rowcount==0:
-                raise HTTPException(status_code=400, detail="Invalid QR index.")
-            cur.execute(f"UPDATE users SET qr_count = qr_count - 1 WHERE id={user_id};")
+async def delete_qr(qr_index:int, token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    status = delete_qr_code(qr_index, user)
+    if status==1:
+        raise HTTPException(status_code=400, detail="Only the owners can delete their QR codes.")
+    if status==2:
+        raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
 
