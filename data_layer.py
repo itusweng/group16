@@ -110,3 +110,21 @@ def delete_qr_from_db(qr_id:str, user_id:str, db_info:str):
 
     conn.close()
     return True
+
+def insert_qr_access(qr_id:str, ip:str, agent:str, country:str, city:str, lat:str, long:str, db_info:str):
+    try:
+        with ps2.connect(db_info) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"""INSERT INTO qr_access_history VALUES ({qr_id}, '{timestamp()}', '{ip}', '{country}', '{city}', '{agent}', {lat}, {long});""")
+    except:
+        pass
+
+    conn.close()
+
+def get_qr_history_from_db(qr_id:str, db_info:str):
+    with ps2.connect(db_info) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT access_time, country, city, agent, latitude, longitude FROM qr_access_history WHERE qr_id={qr_id};")
+            cur_return = cur.fetchall()
+    conn.close()
+    return cur_return

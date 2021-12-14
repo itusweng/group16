@@ -1,11 +1,11 @@
 from typing import Optional
-from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks
+from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, JSONResponse
 import os
 
 from logic_layer import login_user, register_user, decode_token, insert_new_qr, get_user_qr, \
-    generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code
+    generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code, log_qr_access, get_qr_access
 
 
 SERVER_HOST = "http://127.0.0.1:8000"
@@ -43,18 +43,23 @@ async def my_qr_codes(token:str = Depends(oauth2_scheme)):
     return get_user_qr(user)
 
 @app.post("/get_qr_img")
-async def get_qr_img(qr_index:str, bg_task:BackgroundTasks, token:str = Depends(oauth2_scheme)):
+async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, token:str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    requested_qr = generate_qr_for_user(qr_index, user, SERVER_HOST)
+    requested_qr = generate_qr_for_user(qr_id, user, SERVER_HOST)
     if requested_qr is None:
         raise HTTPException(status_code=400, detail="Only the owners can see their QR codes.")
-    fname = f"{qr_index}.png"
+    fname = f"{qr_id}.png"
     requested_qr.save(fname)
     bg_task.add_task(os.remove, fname)
     return FileResponse(fname, background=bg_task)
 
 @app.get("/qr/{qr_id}", status_code=200)# Get redirect link from qr
-async def redirect_from_qr(qr_id:str):
+async def redirect_from_qr(qr_id:str, request:Request):
+    # Get Information about the Request:
+    agent = request.headers.get('user-agent')
+    ip = request.client.host
+    log_qr_access(qr_id, agent, ip)
+    # Redirect
     redirect_link = get_qr_redirect_link(qr_id)
     if redirect_link is None:
         raise HTTPException(status_code=400, detail="Invalid QR code.")
@@ -63,20 +68,27 @@ async def redirect_from_qr(qr_id:str):
     #return JSONResponse(status_code=302, headers={"Location":redirect_link}) TODO
 
 @app.post("/update_qr")
-async def update_qr(qr_index:int, new_link:str, token:str = Depends(oauth2_scheme)):
+async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    status = change_qr_link(qr_index, new_link, user)
+    status = change_qr_link(qr_id, new_link, user)
     if status==1:
         raise HTTPException(status_code=400, detail="Only the owners can edit their QR codes.")
     if status==2:
         raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
 
 @app.post("/delete_qr")
-async def delete_qr(qr_index:int, token:str = Depends(oauth2_scheme)):
+async def delete_qr(qr_id:int, token:str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    status = delete_qr_code(qr_index, user)
+    status = delete_qr_code(qr_id, user)
     if status==1:
         raise HTTPException(status_code=400, detail="Only the owners can delete their QR codes.")
     if status==2:
         raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
 
+@app.get("/get_qr_stats")
+async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    access_history = get_qr_access(qr_id, user)
+    if access_history==1:
+        raise HTTPException(status_code=400, detail="Only the owners can view access history of their QR codes.")
+    return access_history

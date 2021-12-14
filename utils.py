@@ -3,6 +3,9 @@ import hashlib
 from PIL import Image
 import qrcode
 from datetime import datetime
+import random
+# import requests
+# import json
             
 def hash_sha256(string:str) -> str:
     m = hashlib.sha256(string.encode())
@@ -23,4 +26,19 @@ def generate_qr(text:str, size:int) -> Image:
 
 def timestamp():
     return  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
+def get_IP_location(ip:str):
+    # Dummy function during Offline testing (comments are the real function)
+    """ Returns (Country, City, Latitude, Longitude) based on IP. On error returns None """
+    locations = [('Turkey', 'Istanbul'), ('Turkey', 'Ankara'), ('Turkey', 'Izmir'), ('Germany', 'Berlin'), ('Germany', 'Munich'),\
+    ('U.S.A', 'California'), ('U.S.A', 'Los Angeles'),]
+    longitude = (random.random() - 0.5) * 180
+    latitude = (random.random() - 0.5) * 90
+    country, city = random.choice(locations)
+    return country, city, latitude, longitude
+    # API_ADDRESS = "https://geolocation-db.com/jsonp/"
+    # try:
+    #     ip_info = json.loads(requests.get(API_ADDRESS + ip).content.decode()[9:-1])
+    #     return ip_info['country_name'], ip_info['city'], ip_info['latitude'], ip_info['longitude']
+    # except:
+    #     return None

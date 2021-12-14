@@ -38,5 +38,10 @@ CREATE TABLE qr_access_history (
 	qr_id INT NOT NULL,
 	FOREIGN KEY (qr_id) REFERENCES qr_codes (id),
 	access_time TIMESTAMP NOT NULL,
-	access_loc VARCHAR(256) NOT NULL
+	ip VARCHAR(46),
+	country VARCHAR(256),
+	city VARCHAR(256),
+	agent VARCHAR(256),
+	latitude REAL,
+	longitude REAL
 );

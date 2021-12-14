@@ -1,8 +1,8 @@
 from typing import Optional, Tuple
 
-from utils import hash_sha256, generate_qr, timestamp
+from utils import hash_sha256, generate_qr, get_IP_location
 from data_layer import User, get_user, insert_user, insert_qr_to_db, get_qr_by_user_id,\
-    get_qr_by_qr_and_user_id, get_qr_by_id, update_qr_link, delete_qr_from_db
+    get_qr_by_qr_and_user_id, get_qr_by_id, update_qr_link, delete_qr_from_db, insert_qr_access, get_qr_history_from_db
 
 with open("db_access_string.txt", "r") as f:
     db_info = f.read()
@@ -64,3 +64,15 @@ def delete_qr_code(qr_id:int, user:User):
 
     if delete_qr_from_db(qr_id, user.id, db_info): return 0
     return 2
+
+def log_qr_access(qr_id:str, agent:str, ip:str):
+    country, city, lat, long = get_IP_location(ip)
+    insert_qr_access(qr_id, ip, agent, country, city, lat, long, db_info)
+
+def get_qr_access(qr_id:int, user:User):
+    """ Returns QR access history. Returns 1 for invalid access"""
+    if not get_qr_by_qr_and_user_id(qr_id, user.id, db_info):
+        return 1
+
+    history = get_qr_history_from_db(qr_id, db_info)
+    return [{'time':x[0], 'country':x[1], 'city':x[2], 'agent':x[3], 'latitude':x[4], 'longitude':x[5]} for x in history]
