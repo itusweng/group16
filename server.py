@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks, Request
+from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks, Request, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, JSONResponse
 import os
@@ -43,9 +43,16 @@ async def my_qr_codes(token:str = Depends(oauth2_scheme)):
     return get_user_qr(user)
 
 @app.post("/get_qr_img")
-async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, token:str = Depends(oauth2_scheme)):
+async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, file: Optional[UploadFile] = File(None), version:str=None, size:str=None,  token:str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    requested_qr = generate_qr_for_user(qr_id, user, SERVER_HOST)
+    if file is not None:
+        contents = await file.read()
+        filename = file.filename
+        with open(filename, "wb+") as file_object:
+            file_object.write(contents)
+        bg_task.add_task(os.remove, filename)
+    else: filename = None
+    requested_qr = generate_qr_for_user(qr_id, user, version, size, filename, SERVER_HOST)
     if requested_qr is None:
         raise HTTPException(status_code=400, detail="Only the owners can see their QR codes.")
     fname = f"{qr_id}.png"

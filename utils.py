@@ -11,17 +11,29 @@ def hash_sha256(string:str) -> str:
     m = hashlib.sha256(string.encode())
     return m.hexdigest()
 
-def generate_qr(text:str, size:int) -> Image:
+def generate_qr(text:str, version:int=5, size:int=1024, embed_img_path:str=None) -> Image:
     """
-    Returns a square PIL Image as the size given. Uses QR Version 5 to encode 64 chars at most.
+    Returns a square PIL Image as the size given. 
+    Version determines the complexity, and a image can be embedded to middle of the QR.
     """
-    assert len(text)<=64 # 64 is the most alphanumeric chars allowed in Version 5
-    box_size = size // (37+4) # 37 is Version 5 size. 4 is the border size. Change these to change the version.
-    qr = qrcode.QRCode(version=5, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=box_size, border=2)
+    box_size = size // (17 + version*4 +4) # +4 is the border pixels. Change these to change the version.
+    
+    qr = qrcode.QRCode(version=version, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=box_size, border=2)
     qr.add_data(text)
     img = Image.new('RGB', (size,size), (255,255,255))
-    offset = (img.size[0] - (box_size*41))//2 # calculate where to paste into middle
-    img.paste(qr.make_image(), (offset, offset))
+    qr_img = qr.make_image()
+    # check if generated qr is larger than user input
+    if qr_img.size[0] > img.size[0]:
+        qr_img = qr_img.resize((size,size))
+        offset = 0
+    else: offset = (size % (17 + version*4 +4))//2 # find coordinates to paste
+    
+    img.paste(qr_img, (offset, offset))
+    if embed_img_path is not None:
+        with Image.open(embed_img_path) as embed_img:
+            embed_img = embed_img.resize((int(size*0.2), (int(size*0.2))))
+            img.paste(embed_img, ( int(size*0.4), int(size*0.4) ))
+    
     return img
 
 def timestamp():

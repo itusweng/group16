@@ -38,12 +38,14 @@ def get_user_qr(user:User):
     """ Returns a list in JSON format of QR IDs and links """
     return [{'qr_id':qr[0], 'link':qr[1]} for qr in get_qr_by_user_id(user.id, db_info)]
 
-def generate_qr_for_user(qr_id:str, user:User, host:str):
+def generate_qr_for_user(qr_id:str, user:User, version:str, size:str, embed_img_path:str, host:str):
     """ Generates and returns QR image if the owner is requesting, else returns None """
     if not get_qr_by_qr_and_user_id(qr_id, user.id, db_info):
         return None
     
-    return generate_qr(f"{host}/qr/{qr_id}", 1024)
+    if version is None: version=5
+    if size is None: size=1024
+    return generate_qr(f"{host}/qr/{qr_id}", int(version), int(size), embed_img_path)
 
 def get_qr_redirect_link(qr_id:str):
     """ Returns redirect link of a QR code"""
