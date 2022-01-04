@@ -72,7 +72,7 @@ async def redirect_from_qr(qr_id:str, request:Request):
     if redirect_link is None:
         raise HTTPException(status_code=400, detail="Invalid QR code.")
     
-    return JSONResponse(status_code=302, headers={"Location":"https://" + redirect_link[0]}) #TODO HTTPS CHECK
+    return JSONResponse(status_code=302, headers={"Location":redirect_link})
 
 @app.post("/update_qr")
 async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme)):

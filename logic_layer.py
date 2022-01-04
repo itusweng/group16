@@ -50,7 +50,11 @@ def generate_qr_for_user(qr_id:str, user:User, version:str, size:str, embed_img_
 
 def get_qr_redirect_link(qr_id:str):
     """ Returns redirect link of a QR code"""
-    return get_qr_by_id(qr_id, db_info)
+    link =  get_qr_by_id(qr_id, db_info)
+    if link is None: return None
+    link = link[0]
+    if link[:4]=='http': return link
+    else: return "https://" + link
 
 def change_qr_link(qr_id:int, new_link:str, user:User):
     """ Changes the redirect link of a QR code. 0 for success, 1 for invalid ownership, 2 for error"""
