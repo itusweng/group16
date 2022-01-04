@@ -5,7 +5,8 @@ from fastapi.responses import FileResponse, JSONResponse
 import os
 
 from logic_layer import login_user, register_user, decode_token, insert_new_qr, get_user_qr, \
-    generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code, log_qr_access, get_qr_access
+    generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code, log_qr_access, get_qr_access,\
+    set_user_premium, admin_get_all_users, admin_ban_user, admin_get_all_qr
 
 
 SERVER_HOST = "http://127.0.0.1:8000"
@@ -71,8 +72,7 @@ async def redirect_from_qr(qr_id:str, request:Request):
     if redirect_link is None:
         raise HTTPException(status_code=400, detail="Invalid QR code.")
     
-    return {"redirect_to":redirect_link[0]}
-    #return JSONResponse(status_code=302, headers={"Location":redirect_link}) TODO
+    return JSONResponse(status_code=302, headers={"Location":"https://" + redirect_link[0]}) #TODO HTTPS CHECK
 
 @app.post("/update_qr")
 async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme)):
@@ -99,3 +99,38 @@ async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
     if access_history==1:
         raise HTTPException(status_code=400, detail="Only the owners can view access history of their QR codes.")
     return access_history
+
+# PREMIUM / ADMIN ####################################################################
+
+@app.get("/set_premium")
+async def set_premium(token:str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    status = set_user_premium(user)
+    if status==False:
+        raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
+
+@app.get("/all_users")
+async def get_all_users(token:str = Depends(oauth2_scheme)):
+    """ Allows the admin to get the data for all users. """
+    admin = decode_token(token)
+    results = admin_get_all_users(admin)
+    if results==1:
+        raise HTTPException(status_code=400, detail="Only the admins can view all users.")
+    return results
+
+@app.post("/ban_user")
+async def ban_user(user_id:str, token:str = Depends(oauth2_scheme)):
+    """ Allows the admin to ban a user, deleting all QR codes etc. from the database. """
+    admin = decode_token(token)
+    results = admin_ban_user(admin, user_id)
+    if results==1:
+        raise HTTPException(status_code=400, detail="Only the admins can ban users.")
+
+@app.get("/all_qr_codes")
+async def get_all_qr(token:str = Depends(oauth2_scheme)):
+    """ Allows the admin to get the data for all QR codes. """
+    admin = decode_token(token)
+    results = admin_get_all_qr(admin)
+    if results==1:
+        raise HTTPException(status_code=400, detail="Only the admins can view all QR codes.")
+    return results

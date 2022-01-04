@@ -2,7 +2,8 @@ from typing import Optional, Tuple
 
 from utils import hash_sha256, generate_qr, get_IP_location
 from data_layer import User, get_user, insert_user, insert_qr_to_db, get_qr_by_user_id,\
-    get_qr_by_qr_and_user_id, get_qr_by_id, update_qr_link, delete_qr_from_db, insert_qr_access, get_qr_history_from_db
+    get_qr_by_qr_and_user_id, get_qr_by_id, update_qr_link, delete_qr_from_db, insert_qr_access, get_qr_history_from_db,\
+    update_user_premium, get_all_users_db, delete_user, get_all_qr_db
 
 with open("db_access_string.txt", "r") as f:
     db_info = f.read()
@@ -61,7 +62,7 @@ def change_qr_link(qr_id:int, new_link:str, user:User):
 
 def delete_qr_code(qr_id:int, user:User):
     """ Deletes a QR code from DB. 0 for success, 1 for invalid ownership, 2 for error"""
-    if not get_qr_by_qr_and_user_id(qr_id, user.id, db_info):
+    if not (get_qr_by_qr_and_user_id(qr_id, user.id, db_info) or user.is_admin):
         return 1
 
     if delete_qr_from_db(qr_id, user.id, db_info): return 0
@@ -73,8 +74,29 @@ def log_qr_access(qr_id:str, agent:str, ip:str):
 
 def get_qr_access(qr_id:int, user:User):
     """ Returns QR access history. Returns 1 for invalid access"""
-    if not get_qr_by_qr_and_user_id(qr_id, user.id, db_info):
+    if not (get_qr_by_qr_and_user_id(qr_id, user.id, db_info) or user.is_admin):
         return 1
 
     history = get_qr_history_from_db(qr_id, db_info)
     return [{'time':x[0], 'country':x[1], 'city':x[2], 'agent':x[3], 'latitude':x[4], 'longitude':x[5]} for x in history]
+
+def set_user_premium(user:User):
+    return update_user_premium(user.id, db_info)
+
+def admin_get_all_users(user:User):
+    if not user.is_admin:
+        return 1
+    
+    return get_all_users_db(db_info)
+
+def admin_ban_user(admin:User, user_id:str):
+    if not admin.is_admin:
+        return 1
+    delete_user(user_id, db_info)
+    return 0
+
+def admin_get_all_qr(user:User):
+    if not user.is_admin:
+        return 1
+    
+    return get_all_qr_db(db_info)

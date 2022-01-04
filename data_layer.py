@@ -128,3 +128,34 @@ def get_qr_history_from_db(qr_id:str, db_info:str):
             cur_return = cur.fetchall()
     conn.close()
     return cur_return
+
+def update_user_premium(user_id:str, db_info:str):
+    try:
+        with ps2.connect(db_info) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"UPDATE users SET is_premium=TRUE WHERE id={user_id};")
+        conn.close()
+    except: return False # error occured
+    return True # no errors
+
+def get_all_users_db(db_info:str):
+    with ps2.connect(db_info) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT * FROM users;")
+            cur_return = cur.fetchall()
+    conn.close()
+    return cur_return
+
+def delete_user(user_id:str, db_info:str):
+    with ps2.connect(db_info) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"DELETE FROM users WHERE id={user_id};")
+    conn.close()
+
+def get_all_qr_db(db_info:str):
+    with ps2.connect(db_info) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT * FROM qr_codes;")
+            cur_return = cur.fetchall()
+    conn.close()
+    return cur_return
