@@ -5,6 +5,8 @@ from data_layer import User, get_user, insert_user, insert_qr_to_db, get_qr_by_u
     get_qr_by_qr_and_user_id, get_qr_by_id, update_qr_link, delete_qr_from_db, insert_qr_access, get_qr_history_from_db,\
     update_user_premium, get_all_users_db, delete_user, get_all_qr_db
 
+# Format for db_access_string.txt:
+# dbname=DATABASENAME host=HOSTNAME port=PORT user=USERNAME password=PASSWORD
 with open("db_access_string.txt", "r") as f:
     db_info = f.read()
 

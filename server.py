@@ -16,6 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 # LOGIN / REGISTER ###############################################################
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """ Used to get the access token that must be supplied in the headers of other GET/POST methods."""
     user, success = login_user(form_data.username, form_data.password)
     if not success:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
@@ -24,6 +25,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @app.post("/register", status_code=200)
 async def login(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
+    """ Registers the user to database if username and email are unique. """
     success = register_user(username, email, password)
     if not success:
         raise HTTPException(status_code=400, detail="Username or email already exists.")
@@ -31,6 +33,7 @@ async def login(username: str = Form(...), email: str = Form(...), password: str
 # QR CODE ###############################################################
 @app.post("/create_qr")
 async def create_qr(link: str = Form(...), token: str = Depends(oauth2_scheme)):
+    """ Adds the QR to the database. This method does not return an image. """
     user = decode_token(token)
     status = insert_new_qr(link, user)
     if status==1:
@@ -40,11 +43,13 @@ async def create_qr(link: str = Form(...), token: str = Depends(oauth2_scheme)):
 
 @app.get("/my_qr_codes")
 async def my_qr_codes(token:str = Depends(oauth2_scheme)):
+    """ Returns the QR code data in JSON format. This method does not return an image."""
     user = decode_token(token)
     return get_user_qr(user)
 
 @app.post("/get_qr_img")
 async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, file: Optional[UploadFile] = File(None), version:str=None, size:str=None,  token:str = Depends(oauth2_scheme)):
+    """ Creates and returns an image based on user selected values. """
     user = decode_token(token)
     if file is not None:
         contents = await file.read()
@@ -63,6 +68,7 @@ async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, file: Optional[UploadFi
 
 @app.get("/qr/{qr_id}", status_code=200)# Get redirect link from qr
 async def redirect_from_qr(qr_id:str, request:Request):
+    """ This method redirects when a QR is scanned to its respective URL."""
     # Get Information about the Request:
     agent = request.headers.get('user-agent')
     ip = request.client.host
@@ -76,6 +82,7 @@ async def redirect_from_qr(qr_id:str, request:Request):
 
 @app.post("/update_qr")
 async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme)):
+    """ Updates the redirect link of a QR if the sender has ownership. """
     user = decode_token(token)
     status = change_qr_link(qr_id, new_link, user)
     if status==1:
@@ -85,6 +92,7 @@ async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme))
 
 @app.post("/delete_qr")
 async def delete_qr(qr_id:int, token:str = Depends(oauth2_scheme)):
+    """ Deletes QR from database if the sender has ownership. """
     user = decode_token(token)
     status = delete_qr_code(qr_id, user)
     if status==1:
@@ -94,6 +102,7 @@ async def delete_qr(qr_id:int, token:str = Depends(oauth2_scheme)):
 
 @app.get("/get_qr_stats")
 async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
+    """ Returns the access history of a QR code in JSON format if the sender has ownership."""
     user = decode_token(token)
     access_history = get_qr_access(qr_id, user)
     if access_history==1:
@@ -104,6 +113,7 @@ async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
 
 @app.get("/set_premium")
 async def set_premium(token:str = Depends(oauth2_scheme)):
+    """ Sets the account status of the sender to premium"""
     user = decode_token(token)
     status = set_user_premium(user)
     if status==False:
