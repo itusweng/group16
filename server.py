@@ -35,6 +35,8 @@ async def login(username: str = Form(...), email: str = Form(...), password: str
 async def create_qr(link: str = Form(...), token: str = Depends(oauth2_scheme)):
     """ Adds the QR to the database. This method does not return an image. """
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     status = insert_new_qr(link, user)
     if status==1:
         raise HTTPException(status_code=400, detail="Free users can generate up to 3 QR codes. Upgrade to premium or delete a QR code to generate a new one.")
@@ -45,12 +47,16 @@ async def create_qr(link: str = Form(...), token: str = Depends(oauth2_scheme)):
 async def my_qr_codes(token:str = Depends(oauth2_scheme)):
     """ Returns the QR code data in JSON format. This method does not return an image."""
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     return get_user_qr(user)
 
 @app.post("/get_qr_img")
 async def get_qr_img(qr_id:str, bg_task:BackgroundTasks, file: Optional[UploadFile] = File(None), version:str=None, size:str=None,  token:str = Depends(oauth2_scheme)):
     """ Creates and returns an image based on user selected values. """
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     if file is not None:
         contents = await file.read()
         filename = file.filename
@@ -84,6 +90,8 @@ async def redirect_from_qr(qr_id:str, request:Request):
 async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme)):
     """ Updates the redirect link of a QR if the sender has ownership. """
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     status = change_qr_link(qr_id, new_link, user)
     if status==1:
         raise HTTPException(status_code=400, detail="Only the owners can edit their QR codes.")
@@ -94,6 +102,8 @@ async def update_qr(qr_id:int, new_link:str, token:str = Depends(oauth2_scheme))
 async def delete_qr(qr_id:int, token:str = Depends(oauth2_scheme)):
     """ Deletes QR from database if the sender has ownership. """
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     status = delete_qr_code(qr_id, user)
     if status==1:
         raise HTTPException(status_code=400, detail="Only the owners can delete their QR codes.")
@@ -104,6 +114,8 @@ async def delete_qr(qr_id:int, token:str = Depends(oauth2_scheme)):
 async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
     """ Returns the access history of a QR code in JSON format if the sender has ownership."""
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     access_history = get_qr_access(qr_id, user)
     if access_history==1:
         raise HTTPException(status_code=400, detail="Only the owners can view access history of their QR codes.")
@@ -115,6 +127,8 @@ async def get_qr_stats(qr_id:int, token:str = Depends(oauth2_scheme)):
 async def set_premium(token:str = Depends(oauth2_scheme)):
     """ Sets the account status of the sender to premium"""
     user = decode_token(token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     status = set_user_premium(user)
     if status==False:
         raise HTTPException(status_code=400, detail="Unexpected error, contact an administrator.")
