@@ -2,16 +2,17 @@ from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, Form, BackgroundTasks, Request, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from logic_layer import login_user, register_user, decode_token, insert_new_qr, get_user_qr, \
     generate_qr_for_user, get_qr_redirect_link, change_qr_link, delete_qr_code, log_qr_access, get_qr_access,\
     set_user_premium, admin_get_all_users, admin_ban_user, admin_get_all_qr
 
-
 SERVER_HOST = "http://127.0.0.1:8000"
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 
 # LOGIN / REGISTER ###############################################################
 @app.post("/login")
