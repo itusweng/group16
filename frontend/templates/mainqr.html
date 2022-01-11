@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>My QR Codes</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--Font Awesome-->
+    <link rel="stylesheet" href="/static/dist/font-awesome/css/font-awesome.min.css" />
+    <!-- Custom CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <link id="mainStyle" rel="stylesheet" href="/static/css/style.css">
+</head>
+	
+<body>
+    <div class="loader"></div>
+    <header id="header">
+    </header>
+    <main id="main" role="main">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container px-5">
+                <a class="navbar-brand" href="home">Resilient QR</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="mainqr">My QR Codes <Code></Code></a></li>
+                    </ul>
+
+                </div>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="logout">Logout</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="profile" >Profile</a></li>
+                    </ul>
+            </div>
+
+        </nav>
+
+    <div style="text-align:center, display:inline-block;">
+        <form method="post" id = "buttons">
+            <h2 style="display:inline-block;margin-left:560px">My QR Codes</h2>
+                           <input type="submit" value="Create New QR" style="float:right;width: 10%;">
+               <input type="text" id="createnew" name="createnew" style="float:right;width: 15%;">
+
+        </form></div>
+
+<table id="classic">
+  <tr>
+    <th style="text-align:center">QR ID</th>
+    <th style="text-align:center">Link</th>
+      <th style="text-align:center">Create QR Image</th>
+    <th style="text-align:center">Stats</th>
+    <th style="text-align:center">Update</th>
+    <th style="text-align:center">Delete</th>
+  </tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{row[0]}}</td>
+            <td><a href={{row[1]}}>{{row[1]}}</a></td>
+            <td style="text-align:center">
+                <form action = "" method="post" id = "buttoncreate">
+                    <button class="button button_easy" type="submit" name = 'create' value = '{{row[0]}}|{{row[1]}}'  > Create QR Image</button>
+                </form>
+            </td>
+            <td style="text-align:center">
+                <form action = "" method="post" id = "buttonupdate">
+                    <button class="button button_easy" type="submit" name = 'update' value = '{{row[0]}}|{{row[1]}}'  > Update </button>
+                </form>
+            </td>
+            <td style="text-align:center">
+                <form action = "" method="post" id = "buttonstats">
+                    <button class="button button_easy" type="submit" name = 'stats' value = '{{row[0]}}'  > Stats </button>
+                </form>
+            </td>
+            <td style="text-align:center">
+                <form action = "" method="post" id = "buttondelete">
+                    <button class="button button_hard" type="submit" name = 'delete' value = '{{row[0]}}'  > &#10006 </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+</table>
+
+        <!-- Footer-->
+        <footer class="py-5 bg-white">
+            <div class="container px-5"><p class="m-0 text-center text-black">Copyright &copy; Resilient QR 2021</p></div>
+        </footer>
+    </main>
+
+    <!-- jQuery first, then Bootstrap JS. -->
+    <script src="/static/dist/jquery/jquery.min.js"></script>
+    <script src="/static/dist/popper/popper.min.js" integrity=""></script>
+    <script src="/static/dist/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/js/main.min.js"></script>
+</body>
+
+</html>

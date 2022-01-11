@@ -1,0 +1,282 @@
+.page-content {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(45deg, rgb(230, 230, 230), white);
+}
+
+.auth-card {
+  background-color: white;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.2);
+  border-radius: 20px;
+  padding: 10px 10%;
+}
+
+.qr-code{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 200px;
+	height: 200px;
+	border: 1px solid #888;
+	font-size: 14px;
+}
+
+.logo-area {
+  padding: 10px 20%;
+  margin-top: 40px;
+}
+
+.logo {
+  width: 100%;
+  height: auto;
+}
+
+.auth-title {
+  text-align: center;
+  color: rgb(46, 46, 46);
+}
+
+.service-btn {
+  background-color: white;
+  border: 1px solid rgb(220, 220, 220);
+  width: 100%;
+  color: rgb(46, 46, 46);
+  height: 45px;
+  box-shadow: none !important;
+}
+
+.service-btn:hover {
+  color: #1da19b;
+  border: 1px solid #1da19b;
+}
+
+.service-icon {
+  margin-right: 10px;
+}
+
+.separator {
+  width: 100%;
+  color: rgb(46, 46, 46);
+}
+
+.auth-input {
+  background: white;
+  height: 45px;
+  border: 1px solid rgb(220, 220, 220);
+  color: rgb(46, 46, 46);
+  box-shadow: none !important;
+}
+
+.auth-input:focus {
+  color: #1da19b;
+  border: 1px solid #1da19b;
+}
+
+.input-info-text {
+  color: rgb(138, 138, 138);
+}
+
+.auth-btn {
+  background: #0d6efd;
+  color: white;
+  height: 45px;
+  width: 100%;
+  font-size: 18px;
+  box-shadow: none !important;
+}
+
+.auth-btn:hover {
+  background: #0000ff;
+  color: white;
+}
+
+.text {
+  text-align: center;
+  color: rgb(46, 46, 46);
+}
+
+.text-link {
+  color: #45a29e;
+}
+
+.text-link:hover {
+  color: #24726e;
+}
+
+.btn-theme {
+  background-color: black !important;
+  color: white !important;
+  box-shadow: none !important;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.h1 {
+ margin-top: 6px;
+}
+
+#classic {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  align: center;
+  width: 90%;
+	margin-left: 80px;
+	margin-right: 80px;
+	margin-top: 30px;
+	margin-bottom: 30px;
+
+}
+
+#classic td, #classic th {
+	border: 1px solid #ddd;
+	padding: 10px;
+}
+
+#classic tr:nth-child(even){background-color: #f2f2f2;}
+
+#classic tr:hover {background-color: #ddd;}
+
+#classic th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #3466AA;
+  color: white;
+
+}
+
+.button_easy {
+  background-color: gray; /* Green */
+  border: none;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 2px 2px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.button_easy:hover {
+  background-color: #E4E4E4;
+  color: white;
+}
+
+.button_easy {
+  background-color: #6d9bc3;
+  border: none;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 2px 2px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.button_easy:hover {
+  background-color: #E4E4E4;
+  color: white;
+}
+
+.button_hard {
+  background-color: #ff0000;
+  border: none;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 2px 2px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.button_hard:hover {
+  background-color: #ff726f;
+  color: white;
+}
+input[type=text], select {
+
+  width: 100%;
+
+  padding: 12px 20px;
+
+
+
+  margin-top: 10px;
+
+  margin-bottom: 10px;
+
+  display: inline-block;
+
+  border: 1px solid #ccc;
+
+  border-radius: 4px;
+
+  box-sizing: border-box;
+
+
+
+}
+
+
+
+
+input[type=submit] {
+
+  width: 100%;
+
+  margin-top: 20px;
+
+  margin: 8px 0;
+
+  background-color: #FDDA0D;
+
+  color: white;
+
+  padding: 14px 20px;
+
+  border: none;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+
+
+}
+
+
+
+input[type=submit]:hover {
+
+  background-color: #eed900;
+
+
+
+}
+
+
+
+
+
+form[id = buttons] {
+
+               margin-left: 72px;
+
+               margin-right: 72px;
+
+               margin-top: 20px;
+
+}
+
+
+

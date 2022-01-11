@@ -13,7 +13,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link id="mainStyle" rel="stylesheet" href="assets/css/style.css">
+    <link id="mainStyle" rel="stylesheet" href="/static/css/style.css">
     <script type="text/javascript">
         function generateFun(){
             var data = document.getElementsByClassName("textbox")[0].value;
@@ -34,47 +34,46 @@
 
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container px-5">
-                <a class="navbar-brand" href="home.html">Resilient QR</a>
+                <a class="navbar-brand" href="home">Resilient QR</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active" href="mainqr.html">My QR Codes <Code></Code></a></li>
-                        <li class="nav-item"><a class="nav-link active" href="qrcodegenerator.html">Create New QR <Code></Code></a></li>
+                        <li class="nav-item"><a class="nav-link active" href="mainqr">My QR Codes <Code></Code></a></li>
                     </ul>
 
                 </div>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active" href="home.html">Logout</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="" >Profile</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="home">Logout</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="profile" >Profile</a></li>
                     </ul>
             </div>
 
         </nav>
     <div class="page-content d-flex align-items-center">
-
         <div class="container d-flex justify-content-center">
-
             <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6 col-xxl-5">
-
                 <div class="auth-card">
-
-    <center>
-        <h1 style = "margin:18px">QR Code Generator</h1>
-        <div class="qr-code">
-            <span>QR Code Area</span>
-        </div>
-        
-                        <div class="mb-2 mt-4">
-                            <input type="text" name="date" placeholder="Type Your Text" class="textbox">
-                        </div>
-
-                        <button class="btn auth-btn mt-2 mb-4"onclick="generateFun()">Click to Generate</button>
-    </center>
-
+                <center>
+                    <h1 style = "margin:18px">QR Code Generator</h1>
+                        <form action = "" method = "POST" enctype = "multipart/form-data">
+                            <div class="mb-2 mt-3">
+                                <input type="url" id="oldurl" name="oldurl" class="form-control auth-input" placeholder={{session['url']}} readonly>
+                            </div>
+                            <div class="mb-3">
+                                <input type="version" id="version" name="version" class="form-control auth-input" placeholder="Version">
+                            </div>
+                            <div class="mb-3">
+                                <input type="size" id="size" name="size" class="form-control auth-input" placeholder="Size">
+                            </div>
+                            <input type = "file" name = "file" />
+                            <button id = "Create" class="btn auth-btn mt-2 mb-4">Create</button>
+                        </form>
+                    </center>
                 </div>
             </div>
         </div>
     </div>
+
         <!-- Footer-->
         <footer class="py-5 bg-dark">
             <div class="container px-5"><p class="m-0 text-center text-white">Copyright &copy; Resilient QR 2021</p></div>
