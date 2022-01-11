@@ -33,7 +33,6 @@
                 </div>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link active" href="logout">Logout</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="profile" >Profile</a></li>
                     </ul>
             </div>
 
@@ -41,15 +40,14 @@
 
     <div style="text-align:center, display:inline-block;">
         <form method="post" id = "buttons">
-            <h2 style="display:inline-block;margin-left:560px">My QR Codes</h2>
+           <center> <h2 style="display:inline-block;margin-left:400px">My QR Codes</h2>
                            <input type="submit" value="Create New QR" style="float:right;width: 10%;">
-               <input type="text" id="createnew" name="createnew" style="float:right;width: 15%;">
+               <input type="text" id="createnew" name="createnew" style="float:right;width: 15%;"></center>
 
         </form></div>
 
 <table id="classic">
   <tr>
-    <th style="text-align:center">QR ID</th>
     <th style="text-align:center">Link</th>
       <th style="text-align:center">Create QR Image</th>
     <th style="text-align:center">Stats</th>
@@ -58,7 +56,6 @@
   </tr>
         {% for row in rows %}
         <tr>
-            <td>{{row[0]}}</td>
             <td><a href={{row[1]}}>{{row[1]}}</a></td>
             <td style="text-align:center">
                 <form action = "" method="post" id = "buttoncreate">
@@ -83,18 +80,66 @@
         </tr>
         {% endfor %}
 </table>
+<br><br><br>
 
-        <!-- Footer-->
-        <footer class="py-5 bg-white">
-            <div class="container px-5"><p class="m-0 text-center text-black">Copyright &copy; Resilient QR 2021</p></div>
-        </footer>
     </main>
 
-    <!-- jQuery first, then Bootstrap JS. -->
-    <script src="/static/dist/jquery/jquery.min.js"></script>
-    <script src="/static/dist/popper/popper.min.js" integrity=""></script>
-    <script src="/static/dist/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/js/main.min.js"></script>
+            <section class="bg-white py-5 border-bottom">
+            <div class="container px-5 my-5">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bolder">Upgrade to Premium!</h2>
+                </div>
+                <div class="row gx-5 justify-content-center">
+
+                    <!-- Pricing card pro-->
+                    <div class="col-lg-6 col-xl-4">
+                        <div class="card mb-5 mb-xl-0">
+                            <div class="card-body p-5">
+                                <div class="small text-uppercase fw-bold">
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    Pro
+                                </div>
+                                <div class="mb-3">
+                                    <span class="display-4 fw-bold">$9</span>
+                                    <span class="text-muted">/ mo.</span>
+                                </div>
+                                <ul class="list-unstyled mb-4">
+                                    <li class="mb-2">
+                                        <i class="bi bi-check text-primary"></i>
+                                        <strong>4 users</strong>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check text-primary"></i>
+                                        Unlimited QR Codes
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check text-primary"></i>
+                                        Data Analytics
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check text-primary"></i>
+                                        Dedicated support
+                                    </li>
+                                </ul>
+                                                <form action = "" method="post" id = "buttonpremium">
+                    <button class="button button_easy" type="submit" name = 'premium' value = 'premium'  > Choose plan </button>
+                </form>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+        <!-- Footer-->
+        <footer class="py-5 bg-black">
+            <div class="container px-5"><p class="m-0 text-center text-white">Copyright &copy; Resilient QR 2021</p></div>
+        </footer>
+
 </body>
+
+
+
 
 </html>

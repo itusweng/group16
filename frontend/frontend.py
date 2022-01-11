@@ -2,7 +2,6 @@ from flask import Flask, redirect, url_for, render_template, request, session
 import requests
 from PIL import Image
 import io
-import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'blg411e'
@@ -73,11 +72,19 @@ def signup():
 
 @app.route("/home", methods = ['GET','POST'])
 def home():
+    session['qid'] = None
+    session['url'] = None
+    session['has_id'] = False
+    session["islogin"] = False
+    session["token"] = None
     if request.method == "GET":
         return render_template("home.html")
 
 @app.route("/mainqr", methods = ['GET','POST'])
 def myqr():
+    session['qid'] = None
+    session['url'] = None
+    session['has_id'] = False
     if request.method == "GET":
         if session["islogin"]:
             mainArray = []
@@ -89,7 +96,6 @@ def myqr():
                 for i in res:
                     mainArray.append([i['qr_id'],i['link']])
             print(mainArray)
-
             return render_template("mainqr.html", rows = mainArray)
         else:
             return redirect("/home")
@@ -122,6 +128,10 @@ def myqr():
                 headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
                 delete_response = requests.post('http://127.0.0.1:8000/delete_qr?qr_id={}'.format(delete_id),headers=headers)
                 return redirect("/mainqr")
+            elif list(request.form.keys())[0] == "premium":
+                headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
+                response = requests.get('http://127.0.0.1:8000/set_premium', headers=headers)
+                return redirect("/mainqr")
 
 
 @app.route("/qrcodegenerator", methods = ['GET','POST'])
@@ -133,22 +143,34 @@ def create():
             return redirect("/home")
     elif request.method == "POST":
         f = request.files['file']
-        f.save(f.filename)
-        version = request.form['version']
-        size = request.form['size']
-        headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
-        params = (('qr_id', '{}'.format(session['qid'])),('version', '{}'.format(version)),('size', '{}'.format(size)),)
-        #files = {'file': ('itu.png', open('itu.png', 'rb')),}
-        files = {'file': ('{}'.format(f.filename), open('{}'.format(f.filename), 'rb'))}
+        if f:
+            f = request.files['file']
+            f.save(f.filename)
+            version = request.form['version']
+            size = request.form['size']
+            headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
+            params = (('qr_id', '{}'.format(session['qid'])),('version', '{}'.format(version)),('size', '{}'.format(size)),)
+            files = {'file': ('{}'.format(f.filename), open('{}'.format(f.filename), 'rb'))}
 
-        response = requests.post('http://127.0.0.1:8000/get_qr_img', headers=headers, params=params, files=files)
-        #os.rmdir("/"+f.filename)
-        print(response.content)
-        print(response.status_code)
-        session['qid'] = None
-        session['url'] = None
-        session['has_id'] = False
-        return redirect("/mainqr")
+            response = requests.post('http://127.0.0.1:8000/get_qr_img', headers=headers, params=params, files=files)
+            img = Image.open(io.BytesIO(response.content))
+            img.save("static/temp.jpg")
+
+            print(response.content)
+            print(response.status_code)
+            return render_template("qrcodegenerator.html", check = True)
+        else:
+            version = request.form['version']
+            size = request.form['size']
+            headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
+            params = (('qr_id', '{}'.format(session['qid'])),('version', '{}'.format(version)),('size', '{}'.format(size)),)
+            response = requests.post('http://127.0.0.1:8000/get_qr_img', headers=headers, params=params)
+            img = Image.open(io.BytesIO(response.content))
+            img.save("static/temp.jpg")
+            print(response.content)
+            print(response.status_code)
+            return render_template("qrcodegenerator.html", check = True)
+
 
 
 @app.route("/logout", methods = ['GET','POST'])
@@ -172,9 +194,7 @@ def updateqr():
         headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
         params = (('qr_id', '{}'.format(session['qid'])),('new_link', '{}'.format(request.form['newurl'])))
         response = requests.post('http://127.0.0.1:8000/update_qr', headers=headers, params=params)
-        session['qid'] = None
-        session['url'] = None
-        session['has_id'] = False
+
         return redirect("/mainqr")
 
 @app.route("/stats", methods = ['GET','POST'])
@@ -199,7 +219,7 @@ def statsqr():
             return redirect("/home")
     elif request.method == "POST":
         return redirect("/mainqr")
-
+"""
 @app.route("/profile", methods = ['GET','POST'])
 def profile():
     if request.method == "GET":
@@ -211,6 +231,6 @@ def profile():
         headers = {'accept': 'application/json', 'Authorization': 'Bearer {}'.format(session['token'])}
         response = requests.get('http://127.0.0.1:8000/set_premium', headers=headers)
         return redirect("/profile")
-
+"""
 if __name__ == "__main__":
     app.run(debug=True)

@@ -44,7 +44,6 @@
                 </div>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link active" href="home">Logout</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="profile" >Profile</a></li>
                     </ul>
             </div>
 
@@ -56,6 +55,10 @@
                 <center>
                     <h1 style = "margin:18px">QR Code Generator</h1>
                         <form action = "" method = "POST" enctype = "multipart/form-data">
+
+                         {% if check == True %}
+                           <img src="static/temp.jpg" alt="temp" width="256" height="256">
+                        {% endif %}
                             <div class="mb-2 mt-3">
                                 <input type="url" id="oldurl" name="oldurl" class="form-control auth-input" placeholder={{session['url']}} readonly>
                             </div>
